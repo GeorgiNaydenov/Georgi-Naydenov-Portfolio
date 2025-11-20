@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Georgi Naydenov - Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom utilities usually handled by Tailwind plugins or config */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes fade-in-down {
+            0% { opacity: 0; transform: translateY(-10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down {
+            animation: fade-in-down 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <!-- We use ES Modules to load React and Lucide icons directly from a CDN -->
+    <script type="module">
+        import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
+        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+        // Updated lucide-react version to 0.460.0 to ensure NotebookPen and other newer icons are available
+        import { 
+          Search, 
+          BookOpen, 
+          Layout, 
+          Award, 
+          FileText, 
+          Video, 
+          ExternalLink, 
+          Linkedin, 
+          Menu, 
+          X, 
+          Briefcase, 
+          ChevronRight, 
+          Library, 
+          Code, 
+          Bot, 
+          NotebookPen, 
+          Zap, 
+          TrendingUp, 
+          Users
+        } from 'https://esm.sh/lucide-react@0.460.0?deps=react@18.2.0';
+
+        // --- Data Configuration ---
+
+        const DATA = [
+          // --- CLAUDE ARTIFACTS ---
+          
+          // TOGAF Enterprise Architecture
+          {
+            id: 'togaf-adm',
+            title: 'TOGAF® Architecture Development Method (ADM)',
+            url: 'https://claude.ai/public/artifacts/2d601a83-b064-4fd4-9f05-6f0ae8eb1b93',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'A comprehensive interactive guide to the core Architecture Development Method cycles.'
+          },
+          {
+            id: 'togaf-artifacts-catalog',
+            title: 'TOGAF® 10 Architecture Artifacts Catalog',
+            url: 'https://claude.ai/public/artifacts/2dafc156-f9b3-4a07-9f36-47436f2e6c35',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'Complete listing of Catalogs, Matrices, and Diagrams organized by phase.'
+          },
+          {
+            id: 'togaf-exam-ref',
+            title: 'TOGAF® 10 Comprehensive Exam Reference',
+            url: 'https://claude.ai/public/artifacts/dc158fe4-a814-4e7c-8885-78320aca4a4f',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'Key reference materials consolidated for exam preparation.'
+          },
+          {
+            id: 'togaf-foundation',
+            title: 'TOGAF® Part 1 Foundation Exam Mastery',
+            url: 'https://claude.ai/public/artifacts/1f13606f-e264-411c-b1c4-ec6db7a4d393',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'Study materials focused on the Foundation level requirements.'
+          },
+          {
+            id: 'togaf-flashcards',
+            title: 'TOGAF® Part 1 Flash Cards',
+            url: 'https://claude.ai/public/artifacts/08d965d4-c49d-4f31-93b3-aec03d2ce246',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'Quick revision tool for key terminology and concepts.'
+          },
+          {
+            id: 'togaf-scenario',
+            title: 'TOGAF® Part 2 Scenario Question Mastery',
+            url: 'https://claude.ai/public/artifacts/81f3b856-4712-49ba-b54b-028425d667c8',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'Deep dive into scenario-based questions typically found in Part 2.'
+          },
+          {
+            id: 'togaf-case-study',
+            title: 'TOGAF® Part 2 Complex Case Study Mastery',
+            url: 'https://claude.ai/public/artifacts/90b263a7-bf0f-4b08-a7b9-12fcad7b9b98',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'Practice for complex case studies and analysis.'
+          },
+          {
+            id: 'togaf-principles',
+            title: 'TOGAF Architecture Principles Designer',
+            url: 'https://claude.ai/public/artifacts/5b1068a2-926e-4c6e-aefd-b81da52fd2fa',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'Interactive tool to design and validate architecture principles.'
+          },
+          {
+            id: 'togaf-gap',
+            title: 'TOGAF Gap Analysis Matrix Builder',
+            url: 'https://claude.ai/public/artifacts/db2d9458-bede-4815-9b19-9901732cb124',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'Tool for building and analyzing gaps between baseline and target architectures.'
+          },
+          {
+            id: 'togaf-reqs',
+            title: 'TOGAF Requirements Management Tracker',
+            url: 'https://claude.ai/public/artifacts/fc607fe8-30f8-4b5d-b1ed-053487c5b11e',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'Track and manage architecture requirements throughout the ADM.'
+          },
+          {
+            id: 'togaf-patterns',
+            title: 'TOGAF® Architecture Patterns Library',
+            url: 'https://claude.ai/public/artifacts/56a31e3a-105b-466e-8af1-24369b42939a',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'A collection of reusable architecture patterns.'
+          },
+          {
+            id: 'togaf-part2-kit',
+            title: 'TOGAF Enterprise Architecture Part 2 10th Edition (OGEA-102) Preparation Kit',
+            url: 'https://lnkd.in/dfQU_ay6',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ea',
+            description: 'Comprehensive preparation kit for the OGEA-102 exam.'
+          },
+
+          // TOGAF Business Architecture
+          {
+            id: 'togaf-ba-foundation',
+            title: 'TOGAF Business Architecture Foundation',
+            url: 'https://claude.ai/public/artifacts/9753c325-4988-468e-bbec-b40fbbd1bb43',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ba',
+            description: 'Foundational concepts for Business Architecture (Based on v9.2).'
+          },
+          {
+            id: 'togaf-ba-exam-ref',
+            title: 'TOGAF Business Architecture Part 1 - Exam Reference',
+            url: 'https://claude.ai/public/artifacts/e96adb40-8df9-428b-be89-f34a00fb076e',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ba',
+            description: 'Reference guide tailored for the Business Architecture Part 1 exam.'
+          },
+          {
+            id: 'togaf-ba-artifacts',
+            title: 'TOGAF Business Architecture Artifacts Catalog',
+            url: 'https://claude.ai/public/artifacts/feb250c6-c699-4339-babe-9645b58c2243',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ba',
+            description: 'Specific catalogs and matrices relevant to the Business Architecture domain.'
+          },
+          {
+            id: 'togaf-ba-adm',
+            title: 'TOGAF ADM for Business Architecture Part 1 Exam',
+            url: 'https://claude.ai/public/artifacts/79c4d25c-753c-44a7-8cdd-d48ace521ccd',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'togaf-ba',
+            description: 'Applying the ADM specifically within the context of Business Architecture.'
+          },
+
+          // CBAP Preparation
+          {
+            id: 'cbap-pattern',
+            title: 'CBAP Pattern Recognition',
+            url: 'https://claude.ai/public/artifacts/e1f85671-1218-4afc-9836-c40acd62a214',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Cheat sheet to help identify specific patterns in how exam questions are written.'
+          },
+          {
+            id: 'cbap-guide-1',
+            title: 'CBAP Exam Preparation Guide Part 1',
+            url: 'https://claude.ai/public/artifacts/a4e8ac49-1fa3-4afd-9cd2-b4e551ea1352',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Exam Overview and Knowledge Areas 1-3.'
+          },
+          {
+            id: 'cbap-guide-2',
+            title: 'CBAP Exam Preparation Guide Part 2',
+            url: 'https://claude.ai/public/artifacts/155bee3f-ceae-4eb4-bbd7-34be09e6d219',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Knowledge Areas 4-6, Competencies, and Final Preparation strategies.'
+          },
+          {
+            id: 'cbap-toolkit-3',
+            title: 'CBAP Exam Prep Toolkit Part 3',
+            url: 'https://claude.ai/public/artifacts/3e39bb1b-ce59-441d-8c7f-063cd88dbc24',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Includes a Cheat Sheet, Tips, and Quick Reference guide.'
+          },
+          {
+            id: 'cbap-toolkit-4',
+            title: 'CBAP Exam Prep Toolkit Part 4',
+            url: 'https://claude.ai/public/artifacts/d72a86ca-8332-4c2e-9945-0c20c24cf997',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Practice Scenarios focusing on question patterns, examples, and easier question types.'
+          },
+          {
+            id: 'cbap-techniques',
+            title: 'CBAP Technique Selection & Comparison',
+            url: 'https://claude.ai/public/artifacts/b359362a-96bb-4ad6-b0e8-292aedc4939b',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Top 50 techniques guide: when to use which, comparisons, and quick reference.'
+          },
+          {
+            id: 'cbap-flashcards',
+            title: 'Terminology Flashcards',
+            url: 'https://claude.ai/public/artifacts/05cbc4b4-cce4-4948-8918-fadfc5033511',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Contains 112 of the most common BABOK terms.'
+          },
+          {
+            id: 'cbap-formula',
+            title: 'CBAP Formula & Model Reference',
+            url: 'https://claude.ai/public/artifacts/b1fec853-b986-4473-bfc2-563e91edd460',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Interactive Calculator & Quick Reference for the Key Formulas on the exam.'
+          },
+          {
+            id: 'cbap-baccm',
+            title: 'BACCM Deep Dive: Business Analysis Core Concept Model',
+            url: 'https://claude.ai/public/artifacts/18ff77e3-e1f0-47bd-9b72-996940352e07',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'In-depth exploration of the Business Analysis Core Concept Model.'
+          },
+          {
+            id: 'cbap-case-mastery',
+            title: 'CBAP Case Study Mastery Guide',
+            url: 'https://claude.ai/public/artifacts/1428fe9a-64c2-4ec7-914f-3941dcd54b65',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Strategies and practice for mastering the case study portion of the exam.'
+          },
+          {
+            id: 'cbap-scenario-mastery',
+            title: 'CBAP Scenario-Based Question Mastery Guide',
+            url: 'https://claude.ai/public/artifacts/02bfc737-b740-4952-aefe-7ca02b55d7a3',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Advanced guide for tackling scenario-based questions.'
+          },
+          {
+            id: 'cbap-companion',
+            title: 'BABOK v3 CBAP Exam Companion',
+            url: 'https://claude.ai/public/artifacts/2779c1c0-bbd7-45c2-bdee-602625d534f2',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'cbap',
+            description: 'Visual companion to the BABOK v3 guide with great visualizations.'
+          },
+
+          // Technical (Claude Skills)
+          {
+            id: 'tech-artifact-new',
+            title: 'Claude Skills Deep Dive',
+            url: 'https://claude.ai/public/artifacts/7d470bda-0ed7-4eeb-8279-735e42959bc3',
+            category: 'prototypes',
+            platform: 'claude',
+            subCategory: 'technical',
+            description: 'Technical analysis and deep dive into Claude skills and development capabilities.'
+          },
+
+          // --- NOTEBOOKLM ARTIFACTS ---
+          {
+            id: 'nb-claude-skills',
+            title: 'Anthropic Claude Skills',
+            url: 'https://notebooklm.google.com/notebook/3e7bb5ab-6a95-4510-ab94-3db1a505849c',
+            category: 'prototypes',
+            platform: 'notebooklm',
+            subCategory: 'technical',
+            description: 'NotebookLM collection focused on Anthropic Claude technical skills.'
+          },
+          {
+            id: 'nb-babok',
+            title: 'BABOK Preparation',
+            url: 'https://notebooklm.google.com/notebook/5000e03e-bd07-4bcb-b4f2-c02f1f20e940',
+            category: 'prototypes',
+            platform: 'notebooklm',
+            subCategory: 'cbap',
+            description: 'NotebookLM study resource for BABOK and Business Analysis.'
+          },
+          {
+            id: 'nb-togaf',
+            title: 'TOGAF Series Guide: Architecture Maturity Models',
+            url: 'https://notebooklm.google.com/notebook/2b869057-85f5-41a9-96a1-4b1f2ae61fdf',
+            category: 'prototypes',
+            platform: 'notebooklm',
+            subCategory: 'togaf-ea',
+            description: 'NotebookLM deep dive into Architecture Maturity Models.'
+          },
+
+          // --- Articles ---
+          {
+            id: 'article-skills',
+            title: 'What are Claude "Skills"?',
+            url: 'https://www.linkedin.com/feed/update/urn:li:activity:7385577063765798912/',
+            category: 'articles',
+            description: 'Explaining the capabilities and applications of Claude AI skills.'
+          },
+          {
+            id: 'article-responsible-ai',
+            title: 'Responsible AI #1: AI-First Company Failures',
+            url: 'https://www.linkedin.com/feed/update/urn:li:activity:7334534294129815555/',
+            category: 'articles',
+            description: 'Analyzing common pitfalls when pivoting to an AI-first approach.'
+          },
+          {
+            id: 'article-resource-lib',
+            title: 'The AI & ML Resource Library',
+            url: 'https://www.linkedin.com/feed/update/urn:li:activity:7309542033881206784/',
+            category: 'articles',
+            description: 'A curated collection of resources for Artificial Intelligence and Machine Learning.'
+          },
+          {
+            id: 'article-dysfunctions',
+            title: 'Mapping Organizational Dysfunctions to Foster Outcome-Oriented Results',
+            url: 'https://mentormate.com/blog/mapping-organizational-dysfunctions-to-foster-outcome-oriented-results/',
+            category: 'articles',
+            description: 'Strategies to identify and correct dysfunction to drive results.'
+          },
+          {
+            id: 'article-llm',
+            title: 'Driving Digital Transformation with Open-Source Language Models',
+            url: 'https://mentormate.com/blog/driving-digital-transformation-with-open-source-language-models/',
+            category: 'articles',
+            description: 'Co-authored piece on leveraging open-source LLMs for business transformation.'
+          },
+          {
+            id: 'article-scoping',
+            title: 'Impactful AI Solutions: A Five-Phase Framework for Project Scoping',
+            url: 'https://mentormate.com/blog/driving-digital-transformation-with-open-source-language-models/',
+            category: 'articles',
+            description: 'A structured framework for scoping AI projects effectively.'
+          },
+          {
+            id: 'article-future-ba',
+            title: 'The Future-Ready Business Analyst: Why Generative AI Matters',
+            url: 'https://www.linkedin.com/pulse/future-ready-business-analyst-why-generative-ai-matters-naydenov-q6qhf/?trackingId=FsK4HiSBTn%2B6qdAygPXmug%3D%3D',
+            category: 'articles',
+            description: 'How GenAI is reshaping the role of the Business Analyst.'
+          },
+          {
+            id: 'article-prompt-eng',
+            title: 'Prompt Engineering User Stories',
+            url: 'https://www.linkedin.com/pulse/prompt-engineering-high-quality-agile-user-stories-chatgpt-naydenov/',
+            category: 'articles',
+            description: 'Using prompt engineering techniques to improve Agile user stories.'
+          },
+
+          // --- Posts ---
+          {
+            id: 'post-4years',
+            title: 'A Dyslexic Celebrates 4 Years in Software Development',
+            url: 'https://www.linkedin.com/posts/georgi-naydenov_4-year-journey-overview-activity-7395902489897730048-IYyU?utm_source=share&utm_medium=member_desktop&rcm=ACoAACfMQZwBYEuQs7ivj31vMeii-19DicbHKc8',
+            category: 'posts',
+            description: 'A personal reflection on the journey and milestones in software development.'
+          },
+          {
+            id: 'post-llm-hallucinations',
+            title: 'LLM Hallucinations when performing Deep Research',
+            url: 'https://www.linkedin.com/posts/georgi-naydenov_its-not-unusual-for-deep-research-reports-activity-7383891790405304320-4Yof?utm_source=share&utm_medium=member_desktop&rcm=ACoAACfMQZwBYEuQs7ivj31vMeii-19DicbHKc8',
+            category: 'posts',
+            description: 'Analysis of hallucinations in Large Language Models during deep research tasks.'
+          },
+          {
+            id: 'post-workslop',
+            title: 'Workslop Makes Colleagues Think Less of Each Other',
+            url: 'https://www.linkedin.com/posts/georgi-naydenov_i-love-ai-but-i-despise-ai-generated-workslop-activity-7380855912564948992--VS3?utm_source=share&utm_medium=member_desktop&rcm=ACoAACfMQZwBYEuQs7ivj31vMeii-19DicbHKc8',
+            category: 'posts',
+            description: 'A critique on low-quality AI-generated content in the workplace.'
+          },
+          {
+            id: 'post-oversaturation',
+            title: 'The Oversaturation of AI Certificates',
+            url: 'https://www.linkedin.com/posts/georgi-naydenov_the-oversaturation-of-ai-certificates-by-activity-7345517154819026944-caqj?utm_source=share&utm_medium=member_desktop&rcm=ACoAACfMQZwBYEuQs7ivj31vMeii-19DicbHKc8',
+            category: 'posts',
+            description: 'Discussing the influx of AI certifications by Project/Product/Business Institutes.'
+          },
+          {
+            id: 'post-privacy',
+            title: 'AI Privacy and AI Functionality Not at Any Cost',
+            url: 'https://www.linkedin.com/posts/georgi-naydenov_ai-ainotatallcosts-networ-activity-7319290101765693440-reWq?utm_source=share&utm_medium=member_desktop&rcm=ACoAACfMQZwBYEuQs7ivj31vMeii-19DicbHKc8',
+            category: 'posts',
+            description: 'Balancing the need for AI capabilities with strict data privacy requirements.'
+          },
+          {
+            id: 'post-shopify',
+            title: "Takeaways from Shopify's AI First Announcements",
+            url: 'https://www.linkedin.com/posts/georgi-naydenov_shopifys-ceo-tobi-lutke-posted-an-internal-activity-7315033865264291840-G4K0?utm_source=share&utm_medium=member_desktop&rcm=ACoAACfMQZwBYEuQs7ivj31vMeii-19DicbHKc8',
+            category: 'posts',
+            description: 'Key insights from Shopify’s strategic shift to an AI-first company.'
+          },
+          {
+            id: 'post-deepseek',
+            title: "Don't Use DeepSeek if you Value Your Data",
+            url: 'https://www.linkedin.com/posts/georgi-naydenov_short-r1-deepseek-activity-7289939238945484801-2ii0?utm_source=share&utm_medium=member_desktop&rcm=ACoAACfMQZwBYEuQs7ivj31vMeii-19DicbHKc8',
+            category: 'posts',
+            description: 'A warning regarding data privacy concerns with DeepSeek.'
+          },
+          {
+            id: 'post-marketing',
+            title: 'Is AI a Marketing Term?',
+            url: 'https://www.linkedin.com/posts/georgi-naydenov_opening-remarks-on-ai-in-the-workplace-activity-7116783457447391232-wGoC?utm_source=share&utm_medium=member_desktop&rcm=ACoAACfMQZwBYEuQs7ivj31vMeii-19DicbHKc8',
+            category: 'posts',
+            description: 'Exploring the semantics and marketing hype surrounding Artificial Intelligence.'
+          },
+
+          // --- Public Appearances ---
+          {
+            id: 'video-mentormate',
+            title: 'How Does A Business Analyst Deliver Value to a Project? MentorMate Explains',
+            url: 'https://www.youtube.com/watch?v=aDl4eFmGPdg',
+            category: 'appearances',
+            description: 'Video discussion on the value proposition of Business Analysts in projects.',
+            type: 'video'
+          },
+          {
+            id: 'interview-iiba',
+            title: 'Micro Interview with IIBA Bulgaria',
+            url: 'https://www.linkedin.com/pulse/%D0%BC%D0%B8%D0%BA%D1%80%D0%BE-%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B2%D1%8E-%D1%81-%D0%B3%D0%B5%D0%BE%D1%80%D0%B3%D0%B8-%D0%BD%D0%B0%D0%B9%D0%B4%D0%B5%D0%BD%D0%BE%D0%B2-iiba-bulgaria-ejvjf/?trackingId=WG56hfJFRkKLXd0QP6yEvQ%3D%3D',
+            category: 'appearances',
+            description: 'Interview sharing insights with the IIBA Bulgaria community.',
+            type: 'article'
+          },
+          {
+            id: 'interview-economy',
+            title: 'Пловдив става все по-силен технологичен център (Economy.bg Interview)',
+            url: 'https://economy.bg/economy/view/62714/Plovdiv-stava-vse-po-silen-tehnologichen-centyr',
+            category: 'appearances',
+            description: React.createElement(
+                'span',
+                null,
+                'Discussion on the growth of Plovdiv as a technological hub. ',
+                React.createElement('strong', { className: 'text-slate-800 font-semibold' }, '(Interview in Bulgarian)')
+            ),
+            type: 'article'
+          }
+        ];
+
+        const CATEGORIES = [
+          { id: 'prototypes', label: 'AI Prototypes', icon: React.createElement(Bot, { size: 18 }) },
+          { id: 'articles', label: 'Articles', icon: React.createElement(FileText, { size: 18 }) },
+          { id: 'posts', label: 'Posts', icon: React.createElement(Linkedin, { size: 18 }) },
+          { id: 'appearances', label: 'Public Appearances', icon: React.createElement(Video, { size: 18 }) },
+        ];
+
+        const PROTOTYPE_PLATFORMS = [
+          { id: 'claude', label: 'Claude Artifacts', icon: React.createElement(Layout, { size: 16 }) },
+          { id: 'notebooklm', label: 'NotebookLM Artifacts', icon: React.createElement(NotebookPen, { size: 16 }) }
+        ];
+
+        const ARTIFACT_SUBCATEGORIES = [
+          { id: 'togaf-ea', label: 'TOGAF® Ent. Architecture' },
+          { id: 'togaf-ba', label: 'TOGAF® Bus. Architecture' },
+          { id: 'cbap', label: 'IIBA® CBAP Prep' },
+          { id: 'technical', label: 'Claude Skills Deep Dive' },
+        ];
+
+        // --- Components ---
+
+        const Card = ({ item }) => {
+          let Icon = ExternalLink;
+          if (item.category === 'appearances') Icon = item.type === 'video' ? Video : FileText;
+          if (item.category === 'posts') Icon = Linkedin;
+          if (item.category === 'articles') Icon = FileText;
+          if (item.category === 'prototypes') {
+            Icon = item.platform === 'notebooklm' ? NotebookPen : Layout;
+          }
+
+          return React.createElement('a', {
+            href: item.url,
+            target: "_blank",
+            rel: "noopener noreferrer",
+            className: "group block bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-200 overflow-hidden flex flex-col h-full"
+          }, 
+            React.createElement('div', { className: "p-6 flex-1" },
+                React.createElement('div', { className: "flex items-start justify-between mb-3" },
+                    React.createElement('div', { className: `p-2 rounded-lg ${
+                        item.category === 'prototypes' ? 'bg-indigo-50 text-indigo-600' :
+                        item.category === 'articles' ? 'bg-emerald-50 text-emerald-600' :
+                        item.category === 'posts' ? 'bg-blue-50 text-blue-600' :
+                        'bg-purple-50 text-purple-600'
+                    }`}, React.createElement(Icon, { size: 20 })),
+                    
+                    /* Badges for Appearances */
+                    item.category === 'appearances' && React.createElement('span', { className: `text-xs font-bold px-2 py-1 rounded ml-auto mr-2 ${
+                        item.type === 'video' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                    }`}, item.type === 'video' ? 'Video' : 'Article'),
+
+                    /* Badges for Prototypes */
+                    item.category === 'prototypes' && React.createElement('span', { className: `text-xs font-bold px-2 py-1 rounded ml-auto mr-2 ${
+                        item.platform === 'notebooklm' ? 'bg-orange-100 text-orange-700' : 'bg-indigo-100 text-indigo-700'
+                    }`}, item.platform === 'notebooklm' ? 'NotebookLM' : 'Claude'),
+
+                    React.createElement(ExternalLink, { size: 16, className: "text-slate-400 group-hover:text-blue-500 transition-colors" })
+                ),
+                
+                React.createElement('h3', { className: "text-lg font-semibold text-slate-900 mb-2 leading-tight group-hover:text-blue-600 transition-colors" }, item.title),
+                
+                React.createElement('div', { className: "text-slate-600 text-sm leading-relaxed" }, item.description)
+            ),
+            
+            React.createElement('div', { className: "px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between" },
+                React.createElement('span', { className: "text-xs font-medium text-slate-500 uppercase tracking-wide" },
+                    item.category === 'prototypes' ? 'Resource' : 
+                    item.category === 'articles' ? 'Article' :
+                    item.category === 'posts' ? 'LinkedIn Post' : 'Media'
+                ),
+                React.createElement('span', { className: "text-blue-600 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1" },
+                    "Open ", React.createElement(ChevronRight, { size: 12 })
+                )
+            )
+          );
+        };
+
+        function App() {
+          const [activeCategory, setActiveCategory] = useState('prototypes');
+          const [activePlatform, setActivePlatform] = useState('claude');
+          const [activeSubCategory, setActiveSubCategory] = useState('togaf-ea');
+          const [searchQuery, setSearchQuery] = useState('');
+          const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+          useEffect(() => {
+            if (activeCategory === 'prototypes') {
+              if (!activePlatform) setActivePlatform('claude');
+              if (!activeSubCategory) setActiveSubCategory('togaf-ea');
+            }
+          }, [activeCategory]);
+
+          const filteredData = DATA.filter(item => {
+            if (item.category !== activeCategory) return false;
+            if (searchQuery && activeCategory === 'prototypes') {
+              const q = searchQuery.toLowerCase();
+              const titleMatch = item.title.toLowerCase().includes(q);
+              const desc = typeof item.description === 'string' ? item.description.toLowerCase() : '';
+              return titleMatch || desc.includes(q);
+            }
+            if (activeCategory === 'prototypes') {
+              if (item.platform !== activePlatform) return false;
+              if (item.subCategory !== activeSubCategory) return false;
+            }
+            if (searchQuery) {
+              const q = searchQuery.toLowerCase();
+              return item.title.toLowerCase().includes(q) || 
+                     (typeof item.description === 'string' && item.description.toLowerCase().includes(q));
+            }
+            return true;
+          }).sort((a, b) => a.title.localeCompare(b.title));
+
+          const handleCategoryChange = (catId) => {
+            setActiveCategory(catId);
+            setIsMobileMenuOpen(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setSearchQuery('');
+          };
+
+          const counts = {
+            prototypes: DATA.filter(d => d.category === 'prototypes').length,
+            articles: DATA.filter(d => d.category === 'articles').length,
+            posts: DATA.filter(d => d.category === 'posts').length,
+            appearances: DATA.filter(d => d.category === 'appearances').length,
+          };
+
+          return React.createElement('div', { className: "min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-100 supports-[min-height:100dvh]:min-h-[100dvh]" },
+            
+            /* Header */
+            React.createElement('header', { className: "bg-white border-b border-slate-200 sticky top-0 z-30" },
+                React.createElement('div', { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" },
+                    React.createElement('div', { className: "flex items-center justify-between h-20" },
+                        
+                        /* Logo */
+                        React.createElement('div', { className: "flex items-center gap-3" },
+                            React.createElement('div', { className: "bg-blue-600 text-white p-2 rounded-lg" }, React.createElement(Library, { size: 24 })),
+                            React.createElement('div', null,
+                                React.createElement('h1', { className: "text-xl font-bold text-slate-900 leading-none" }, "Georgi Naydenov"),
+                                React.createElement('p', { className: "text-xs text-slate-500 mt-1 font-medium" }, "Portfolio & Knowledge Library")
+                            )
+                        ),
+
+                        /* Desktop Nav */
+                        React.createElement('nav', { className: "hidden md:flex items-center gap-1" },
+                            CATEGORIES.map(cat => React.createElement('button', {
+                                key: cat.id,
+                                onClick: () => handleCategoryChange(cat.id),
+                                className: `px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                                    activeCategory === cat.id 
+                                    ? 'bg-blue-50 text-blue-700' 
+                                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                }`
+                            }, cat.icon, cat.label))
+                        ),
+
+                        /* Mobile Menu Button */
+                        React.createElement('button', {
+                            className: "md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg",
+                            onClick: () => setIsMobileMenuOpen(!isMobileMenuOpen),
+                            'aria-label': "Toggle menu"
+                        }, isMobileMenuOpen ? React.createElement(X, { size: 24 }) : React.createElement(Menu, { size: 24 }))
+                    )
+                ),
+                
+                /* Mobile Menu Dropdown */
+                isMobileMenuOpen && React.createElement('div', { className: "md:hidden border-t border-slate-200 bg-white animate-fade-in-down" },
+                    React.createElement('div', { className: "px-4 py-2 space-y-1" },
+                        CATEGORIES.map(cat => React.createElement('button', {
+                            key: cat.id,
+                            onClick: () => handleCategoryChange(cat.id),
+                            className: `w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${
+                                activeCategory === cat.id 
+                                ? 'bg-blue-50 text-blue-700' 
+                                : 'text-slate-600 hover:bg-slate-50'
+                            }`
+                        }, cat.icon, cat.label))
+                    )
+                )
+            ),
+
+            /* Hero Section */
+            React.createElement('div', { className: "bg-white border-b border-slate-200" },
+                React.createElement('div', { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12" },
+                    React.createElement('div', { className: "flex flex-col lg:flex-row gap-12 items-center lg:items-start" },
+                        
+                        /* Left Bio */
+                        React.createElement('div', { className: "max-w-3xl flex-1" },
+                            React.createElement('h2', { className: "text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4" }, "Senior AI Business Analyst at SoftServe"),
+                            React.createElement('div', { className: "flex flex-wrap items-center gap-3 mb-6" },
+                                React.createElement('span', { className: "inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-bold" }, "CBAP®"),
+                                React.createElement('span', { className: "inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-bold" }, "PMP®"),
+                                React.createElement('span', { className: "inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-bold" }, "TOGAF® EA Practitioner")
+                            ),
+                            React.createElement('div', { className: "text-lg text-slate-600 mb-6 leading-relaxed space-y-4" },
+                                React.createElement('p', null, "Welcome to my professional portfolio. In here, you will find different things I have created throughout my journey."),
+                                React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-4 text-sm" },
+                                    React.createElement('div', null, React.createElement('strong', { className: "text-slate-900" }, "AI Prototypes:"), " Interactive tools and study guides (TOGAF®, CBAP®) built with Claude and NotebookLM."),
+                                    React.createElement('div', null, React.createElement('strong', { className: "text-slate-900" }, "Articles:"), " In-depth publications on AI strategy, organizational dysfunctions, and digital transformation."),
+                                    React.createElement('div', null, React.createElement('strong', { className: "text-slate-900" }, "Posts:"), " Curated LinkedIn updates covering AI ethics, hallucinations, and industry trends."),
+                                    React.createElement('div', null, React.createElement('strong', { className: "text-slate-900" }, "Public Appearances:"), " Check out my videos and interviews.")
+                                )
+                            ),
+                            React.createElement('a', {
+                                href: "https://www.linkedin.com/in/georgi-naydenov/",
+                                target: "_blank",
+                                rel: "noopener noreferrer",
+                                className: "inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-800 transition-colors"
+                            }, React.createElement(Linkedin, { size: 20 }), "Connect on LinkedIn")
+                        ),
+
+                        /* Right Metrics */
+                        React.createElement('div', { className: "w-full lg:w-auto flex-shrink-0" },
+                            React.createElement('div', { className: "bg-slate-50 p-6 rounded-3xl border border-slate-100" },
+                                React.createElement('h3', { className: "text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center" }, "Library Stats"),
+                                React.createElement('div', { className: "grid grid-cols-2 gap-4" },
+                                    
+                                    /* Prototypes */
+                                    React.createElement('div', { className: "bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-indigo-100 flex flex-col items-center justify-center w-full aspect-square group hover:scale-105 hover:shadow-md transition-all duration-300 cursor-default" },
+                                        React.createElement('div', { className: "text-indigo-500 mb-1 group-hover:animate-bounce" }, React.createElement(Bot, { size: 24 })),
+                                        React.createElement('div', { className: "text-3xl font-black text-slate-900" }, counts.prototypes),
+                                        React.createElement('div', { className: "text-[10px] font-bold text-slate-400 uppercase tracking-wide" }, "Prototypes")
+                                    ),
+                                    /* Articles */
+                                    React.createElement('div', { className: "bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-emerald-100 flex flex-col items-center justify-center w-full aspect-square group hover:scale-105 hover:shadow-md transition-all duration-300 cursor-default" },
+                                        React.createElement('div', { className: "text-emerald-500 mb-1 group-hover:animate-pulse" }, React.createElement(FileText, { size: 24 })),
+                                        React.createElement('div', { className: "text-3xl font-black text-slate-900" }, counts.articles),
+                                        React.createElement('div', { className: "text-[10px] font-bold text-slate-400 uppercase tracking-wide" }, "Articles")
+                                    ),
+                                    /* Posts */
+                                    React.createElement('div', { className: "bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-blue-100 flex flex-col items-center justify-center w-full aspect-square group hover:scale-105 hover:shadow-md transition-all duration-300 cursor-default" },
+                                        React.createElement('div', { className: "text-blue-500 mb-1 group-hover:rotate-12 transition-transform" }, React.createElement(Linkedin, { size: 24 })),
+                                        React.createElement('div', { className: "text-3xl font-black text-slate-900" }, counts.posts),
+                                        React.createElement('div', { className: "text-[10px] font-bold text-slate-400 uppercase tracking-wide" }, "Posts")
+                                    ),
+                                    /* Appearances */
+                                    React.createElement('div', { className: "bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-purple-100 flex flex-col items-center justify-center w-full aspect-square group hover:scale-105 hover:shadow-md transition-all duration-300 cursor-default" },
+                                        React.createElement('div', { className: "text-purple-500 mb-1 group-hover:scale-110 transition-transform" }, React.createElement(Video, { size: 24 })),
+                                        React.createElement('div', { className: "text-3xl font-black text-slate-900" }, counts.appearances),
+                                        React.createElement('div', { className: "text-[10px] font-bold text-slate-400 uppercase tracking-wide" }, "Media")
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            ),
+
+            /* Main Content */
+            React.createElement('main', { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12" },
+                
+                /* Toolbar */
+                React.createElement('div', { className: "mb-10 space-y-6" },
+                    React.createElement('div', { className: "flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-200 pb-6" },
+                        
+                        /* Filter/Title */
+                        React.createElement('div', { className: "flex-1" },
+                            activeCategory === 'prototypes' ? (
+                                React.createElement('div', { className: "flex items-center gap-2 p-1 bg-slate-100 rounded-lg w-fit" },
+                                    PROTOTYPE_PLATFORMS.map(platform => React.createElement('button', {
+                                        key: platform.id,
+                                        onClick: () => { setActivePlatform(platform.id); setSearchQuery(''); },
+                                        className: `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                                            activePlatform === platform.id && !searchQuery
+                                            ? 'bg-white text-slate-900 shadow-sm'
+                                            : 'text-slate-500 hover:text-slate-700'
+                                        }`
+                                    }, platform.icon, platform.label))
+                                )
+                            ) : (
+                                React.createElement('h3', { className: "text-lg font-semibold text-slate-800" },
+                                    CATEGORIES.find(c => c.id === activeCategory)?.label, " Collection"
+                                )
+                            )
+                        ),
+
+                        /* Search */
+                        React.createElement('div', { className: "relative w-full lg:w-72 group" },
+                            React.createElement(Search, { size: 18, className: "absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" }),
+                            React.createElement('input', {
+                                type: "text",
+                                placeholder: `Search in ${CATEGORIES.find(c => c.id === activeCategory)?.label}...`,
+                                value: searchQuery,
+                                onChange: (e) => setSearchQuery(e.target.value),
+                                className: "w-full pl-10 pr-4 py-2.5 rounded-full border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                            })
+                        )
+                    ),
+
+                    /* Sub-Categories */
+                    activeCategory === 'prototypes' && !searchQuery && React.createElement('div', { className: "flex overflow-x-auto pb-2 hide-scrollbar" },
+                        React.createElement('div', { className: "flex gap-2" },
+                            ARTIFACT_SUBCATEGORIES.filter(sub => {
+                                if (activePlatform === 'notebooklm' && sub.id === 'togaf-ba') return false;
+                                return true;
+                            }).map(sub => React.createElement('button', {
+                                key: sub.id,
+                                onClick: () => setActiveSubCategory(sub.id),
+                                className: `whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+                                    activeSubCategory === sub.id
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                }`
+                            }, sub.label))
+                        )
+                    ),
+
+                    /* Search Context */
+                    activeCategory === 'prototypes' && searchQuery && React.createElement('div', { className: "bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm inline-block" },
+                        "Running global search across all AI Prototypes (Claude & NotebookLM)"
+                    )
+                ),
+
+                /* Grid */
+                React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" },
+                    filteredData.length > 0 ? (
+                        filteredData.map(item => React.createElement(Card, { key: item.id, item: item }))
+                    ) : (
+                        React.createElement('div', { className: "col-span-full py-20 text-center" },
+                            React.createElement('div', { className: "mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4" },
+                                React.createElement(Search, { size: 24, className: "text-slate-400" })
+                            ),
+                            React.createElement('h3', { className: "text-slate-900 font-semibold text-lg" }, "No resources found"),
+                            React.createElement('p', { className: "text-slate-500 mt-1" },
+                                searchQuery 
+                                ? `No results matching "${searchQuery}" in this category.`
+                                : "No items found in this filter."
+                            )
+                        )
+                    )
+                )
+            ),
+
+            /* Footer */
+            React.createElement('footer', { className: "bg-white border-t border-slate-200 py-8 mt-auto" },
+                React.createElement('div', { className: "max-w-7xl mx-auto px-4 text-center" },
+                    React.createElement('p', { className: "text-slate-500 text-sm" },
+                        `© ${new Date().getFullYear()} Georgi Naydenov. All rights reserved.`
+                    )
+                )
+            )
+          );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>
