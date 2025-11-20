@@ -1,10 +1,13 @@
 # Portfolio Website
 
-A standalone, single-file HTML portfolio showcasing AI prototypes, articles, posts, and public appearances.
+A standalone, single-file HTML portfolio showcasing AI prototypes, articles, posts, and public appearances.  
+Hosted on **GitHub Pages** at:  
+**https://georginaydenov.github.io/Georgi-Naydenov-Portfolio/**
 
 ## Overview
 
-This is a self-contained portfolio website built as a single HTML file with no build process required. It features a modern, responsive design with dark mode support and showcases professional work in AI, business analysis, and enterprise architecture.
+This is a self-contained portfolio website built as a single HTML file with no build process required. It features a modern, responsive design with dark mode support and showcases professional work in AI, business analysis, and enterprise architecture.  
+The site is deployed through **GitHub Pages** for fast, reliable, and maintenance-free hosting.
 
 ## Tech Stack
 
@@ -23,7 +26,7 @@ This is a self-contained portfolio website built as a single HTML file with no b
 - **Global Search** – Real-time search across visible content  
 - **Alphabetical Sorting** – Auto-sorting of filtered items  
 - **Dark Mode** – System detection + manual toggle  
-- **Responsive Design** – Mobile-first with adaptive layout
+- **Responsive Design** – Mobile-first adaptive layout
 
 ### User Experience
 
@@ -58,7 +61,10 @@ This is a self-contained portfolio website built as a single HTML file with no b
 
 ## Usage
 
-Open `index.html` in any modern browser. No build process or server needed.
+You can view the live site here:  
+**https://georginaydenov.github.io/Georgi-Naydenov-Portfolio/**
+
+Or run it locally:
 
 ```bash
 # Clone the repository
