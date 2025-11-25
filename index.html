@@ -284,7 +284,7 @@
           {
             id: 'togaf-ba-foundation',
             title: 'TOGAF Business Architecture Foundation',
-            url: 'https://claude.ai/public/artifacts/9753c325-4988-468e-bbec-b40fbbd1bb43',
+            url: 'https://claude.ai/public/artifacts/9753c325-9901732cb124',
             category: 'artifacts',
             section: 'ai-prototypes',
             platform: 'claude',
@@ -895,6 +895,15 @@
             }
           }, [isDarkMode]);
 
+          // Explicitly force hero expansion when navigating between top-level categories
+          // This ensures it doesn't stay stuck in collapsed mode when moving from "Artifacts" (potentially scrolled)
+          // to "Articles" or other pages.
+          useEffect(() => {
+              if (activeCategory !== 'artifacts') {
+                  setIsHeroVisible(true);
+              }
+          }, [activeCategory]);
+
           useEffect(() => {
             const handleScroll = () => {
               const currentScrollY = window.scrollY;
@@ -903,18 +912,15 @@
               
               setShowScrollTop(currentScrollY > 300);
               
-              // Avoid "spazzing" on short pages by checking if content is sufficient
-              // We only auto-toggle if the page is significantly longer than the viewport
-              if (documentHeight > windowHeight * 1.5) {
-                  // Auto-collapse hero on scroll down
-                  if (currentScrollY > 100 && isHeroVisible) {
-                      setIsHeroVisible(false);
-                  }
-                  
-                  // Auto-expand hero on scroll up to top
-                  if (currentScrollY < 50 && !isHeroVisible) {
-                      setIsHeroVisible(true);
-                  }
+              // Expand logic: Always allow expanding if near top, regardless of doc height
+              if (currentScrollY < 50 && !isHeroVisible) {
+                  setIsHeroVisible(true);
+              }
+
+              // Collapse logic: Only collapse if scrolled down AND page is tall enough
+              // This prevents the "spazzing" loop on short pages
+              if (currentScrollY > 100 && isHeroVisible && documentHeight > windowHeight * 1.5) {
+                  setIsHeroVisible(false);
               }
             };
             window.addEventListener('scroll', handleScroll);
@@ -989,13 +995,9 @@
             setActiveTopic('all');
             setIsMobileMenuOpen(false);
             
-            // Fix: Ensure Stats & Bio expands when navigating to non-Artifacts pages
-            if (catId !== 'artifacts') {
-                setIsHeroVisible(true);
-            }
-            
             // Use instant scroll (0, 0) instead of smooth behavior to prevent
-            // scroll listener race conditions on layout changes
+            // scroll listener race conditions on layout changes. 
+            // Smooth scroll can trigger "scroll" events mid-way that confuse the auto-collapse logic.
             window.scrollTo(0, 0);
             setSearchQuery('');
           };
