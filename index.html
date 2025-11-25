@@ -898,16 +898,23 @@
           useEffect(() => {
             const handleScroll = () => {
               const currentScrollY = window.scrollY;
+              const windowHeight = window.innerHeight;
+              const documentHeight = document.documentElement.scrollHeight;
+              
               setShowScrollTop(currentScrollY > 300);
               
-              // Auto-collapse hero on scroll down
-              if (currentScrollY > 100 && isHeroVisible) {
-                  setIsHeroVisible(false);
-              }
-              
-              // Auto-expand hero on scroll up to top
-              if (currentScrollY < 50 && !isHeroVisible) {
-                  setIsHeroVisible(true);
+              // Avoid "spazzing" on short pages by checking if content is sufficient
+              // We only auto-toggle if the page is significantly longer than the viewport
+              if (documentHeight > windowHeight * 1.5) {
+                  // Auto-collapse hero on scroll down
+                  if (currentScrollY > 100 && isHeroVisible) {
+                      setIsHeroVisible(false);
+                  }
+                  
+                  // Auto-expand hero on scroll up to top
+                  if (currentScrollY < 50 && !isHeroVisible) {
+                      setIsHeroVisible(true);
+                  }
               }
             };
             window.addEventListener('scroll', handleScroll);
@@ -991,6 +998,12 @@
             setActivePlatform('all');
             setActiveTopic('all'); // FIX: Reset topic when switching sections
             setSearchQuery('');
+          };
+
+          // FIX: Also reset topic when platform changes to prevent "No resources found" on platform switch
+          const handlePlatformChange = (platId) => {
+            setActivePlatform(platId);
+            setActiveTopic('all'); 
           };
 
           const handleStatClick = (catId) => {
@@ -1242,7 +1255,7 @@
                             /* Platform Toggle - Only for AI Prototypes View */
                             activeCategory === 'artifacts' && (activeSection === 'all' || activeSection === 'ai-prototypes') && React.createElement('div', { className: "bg-slate-100 dark:bg-slate-800 p-1 rounded-lg flex items-center shrink-0" },
                                 React.createElement('button', {
-                                    onClick: () => { setActivePlatform('all'); setActiveTopic('all'); setSearchQuery(''); },
+                                    onClick: () => handlePlatformChange('all'),
                                     className: `px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
                                         activePlatform === 'all'
                                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
@@ -1250,7 +1263,7 @@
                                     }`
                                 }, "All"),
                                 React.createElement('button', {
-                                    onClick: () => { setActivePlatform('claude'); setActiveTopic('all'); setSearchQuery(''); },
+                                    onClick: () => handlePlatformChange('claude'),
                                     className: `flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
                                         activePlatform === 'claude'
                                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
@@ -1258,7 +1271,7 @@
                                     }`
                                 }, React.createElement(Layout, { size: 14 }), "Claude"),
                                 React.createElement('button', {
-                                    onClick: () => { setActivePlatform('notebooklm'); setActiveTopic('all'); setSearchQuery(''); },
+                                    onClick: () => handlePlatformChange('notebooklm'),
                                     className: `flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
                                         activePlatform === 'notebooklm'
                                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
