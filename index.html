@@ -908,6 +908,14 @@
               document.documentElement.classList.remove('dark');
             }
           }, [isDarkMode]);
+           // Explicitly force hero expansion when navigating between top-level categories
+           // This ensures it doesn't stay stuck in collapsed mode when moving from "Artifacts" (potentially scrolled)
+          // to "Articles" or other pages.
+          useEffect(() => {
+              if (activeCategory !== 'artifacts') {
+                  setIsHeroVisible(true);
+              }
+          }, [activeCategory]);
 
           useEffect(() => {
             const handleScroll = () => {
@@ -920,18 +928,14 @@
               
               setShowScrollTop(currentScrollY > 300);
               
-              // Only auto-collapse if the page is significantly longer than the viewport
-              // and the user has scrolled down enough.
-              if (documentHeight > windowHeight * 1.5) {
-                  // Auto-collapse hero ONLY on scroll down to prevent it collapsing while animating up
-                  if (isScrollingDown && currentScrollY > 100 && isHeroVisible) {
-                      setIsHeroVisible(false);
-                  }
-                  
-                  // Auto-expand hero on scroll up
-                  if (currentScrollY < 50 && !isHeroVisible) {
-                      setIsHeroVisible(true);
-                  }
+              // Expand logic: Always allow expanding if near top, regardless of doc height
+               if (currentScrollY < 50 && !isHeroVisible) {
+                setIsHeroVisible(true);
+               }
+              // Collapse logic: Only collapse if scrolled down AND page is tall enough
+              // This prevents the "spazzing" loop on short pages
+              if (currentScrollY > 100 && isHeroVisible && documentHeight > windowHeight * 1.5) {
+                setIsHeroVisible(false);
               }
             };
             window.addEventListener('scroll', handleScroll);
@@ -999,17 +1003,18 @@
             })).sort((a, b) => a.label.localeCompare(b.label));
           }, [activeCategory, activeSection, activePlatform]);
 
-          const handleCategoryChange = (catId) => {
+         const handleCategoryChange = (catId) => {
+          // 1. Force instant scroll immediately to bypass CSS smooth-scroll
+          // This prevents the scroll listener from firing on intermediate coordinates
+          window.scrollTo({ top: 0, behavior: 'instant' });
+
             setActiveCategory(catId);
             setActiveSection('all');
             setActivePlatform('all');
             setActiveTopic('all');
             setIsMobileMenuOpen(false);
             
-            // Explicitly expand hero when tab is clicked
             setIsHeroVisible(true);
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             setSearchQuery('');
           };
 
