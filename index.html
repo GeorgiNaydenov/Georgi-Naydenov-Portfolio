@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Georgi Naydenov - Portfolio</title>
+    <link rel="icon" href="Fav Icon.jpg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -125,7 +126,8 @@
           FileText, 
           Video, 
           ExternalLink, 
-          Linkedin, 
+          Linkedin,
+          Github, 
           Menu, 
           X, 
           Briefcase, 
@@ -536,6 +538,15 @@
             subCategory: 'research',
             description: 'Presentation showcasing high-level architectures and deep research methodologies.'
           },
+          {
+            id: 'ai-seller-poc',
+            title: 'AI Seller – MA AI Seller Architecture',
+            url: 'https://georginaydenov.github.io/MAS-Architecture-AI-Seller-Suite/',
+            category: 'artifacts',
+            section: 'proof-of-concepts',
+            subCategory: 'ai-architecture',
+            description: 'Based on CrewAI, AWS, and other parts for the MAS Architecture.'
+          },
 
           // --- Articles ---
           {
@@ -707,7 +718,8 @@
             'technical': 'Claude Skills Deep Dive',
             'agile': 'Agile Methodologies',
             'scrum': 'Scrum.org Prep',
-            'research': 'Deep Research'
+            'research': 'Deep Research',
+            'ai-architecture': 'AI Architecture'
         };
 
         const SECTION_TOPIC_LABELS = {
@@ -880,6 +892,8 @@
           const [isHeroVisible, setIsHeroVisible] = useState(true);
           const [showScrollTop, setShowScrollTop] = useState(false);
           
+          const lastScrollY = useRef(0);
+          
           const [isDarkMode, setIsDarkMode] = useState(() => {
              if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                  return true;
@@ -895,32 +909,29 @@
             }
           }, [isDarkMode]);
 
-          // Explicitly force hero expansion when navigating between top-level categories
-          // This ensures it doesn't stay stuck in collapsed mode when moving from "Artifacts" (potentially scrolled)
-          // to "Articles" or other pages.
-          useEffect(() => {
-              if (activeCategory !== 'artifacts') {
-                  setIsHeroVisible(true);
-              }
-          }, [activeCategory]);
-
           useEffect(() => {
             const handleScroll = () => {
               const currentScrollY = window.scrollY;
               const windowHeight = window.innerHeight;
               const documentHeight = document.documentElement.scrollHeight;
               
+              const isScrollingDown = currentScrollY > lastScrollY.current;
+              lastScrollY.current = currentScrollY;
+              
               setShowScrollTop(currentScrollY > 300);
               
-              // Expand logic: Always allow expanding if near top, regardless of doc height
-              if (currentScrollY < 50 && !isHeroVisible) {
-                  setIsHeroVisible(true);
-              }
-
-              // Collapse logic: Only collapse if scrolled down AND page is tall enough
-              // This prevents the "spazzing" loop on short pages
-              if (currentScrollY > 100 && isHeroVisible && documentHeight > windowHeight * 1.5) {
-                  setIsHeroVisible(false);
+              // Only auto-collapse if the page is significantly longer than the viewport
+              // and the user has scrolled down enough.
+              if (documentHeight > windowHeight * 1.5) {
+                  // Auto-collapse hero ONLY on scroll down to prevent it collapsing while animating up
+                  if (isScrollingDown && currentScrollY > 100 && isHeroVisible) {
+                      setIsHeroVisible(false);
+                  }
+                  
+                  // Auto-expand hero on scroll up
+                  if (currentScrollY < 50 && !isHeroVisible) {
+                      setIsHeroVisible(true);
+                  }
               }
             };
             window.addEventListener('scroll', handleScroll);
@@ -995,10 +1006,10 @@
             setActiveTopic('all');
             setIsMobileMenuOpen(false);
             
-            // Use instant scroll (0, 0) instead of smooth behavior to prevent
-            // scroll listener race conditions on layout changes. 
-            // Smooth scroll can trigger "scroll" events mid-way that confuse the auto-collapse logic.
-            window.scrollTo(0, 0);
+            // Explicitly expand hero when tab is clicked
+            setIsHeroVisible(true);
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             setSearchQuery('');
           };
 
@@ -1111,7 +1122,7 @@
                             }`
                         }, cat.icon, cat.label)),
                         React.createElement('a', {
-                            href: "https://enhancv-pdfs.s3.amazonaws.com/15d286177979bde5bc6793758a990aac-pdf",
+                            href: "https://app.enhancv.com/share/9cce06db",
                             target: "_blank",
                             rel: "noopener noreferrer",
                             className: "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -1131,7 +1142,13 @@
                                 target: "_blank",
                                 rel: "noopener noreferrer",
                                 className: "inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-800 dark:hover:text-blue-300 transition-colors link-underline"
-                            }, React.createElement(Linkedin, { size: 16 }), "Connect on LinkedIn")
+                            }, React.createElement(Linkedin, { size: 16 }), "Connect on LinkedIn"),
+                             React.createElement('a', {
+                                href: "https://github.com/GeorgiNaydenov",
+                                target: "_blank",
+                                rel: "noopener noreferrer",
+                                className: "inline-flex items-center gap-1 text-slate-700 dark:text-slate-300 font-semibold hover:text-slate-900 dark:hover:text-white transition-colors link-underline"
+                            }, React.createElement(Github, { size: 16 }), "GitHub")
                          ),
                          React.createElement('button', {
                             onClick: () => { setIsHeroVisible(true); window.scrollTo({ top: 0, behavior: 'smooth' }); },
@@ -1170,7 +1187,13 @@
                                     target: "_blank",
                                     rel: "noopener noreferrer",
                                     className: "inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-800 dark:hover:text-blue-300 transition-colors link-underline"
-                                }, React.createElement(Linkedin, { size: 20 }), "Connect on LinkedIn")
+                                }, React.createElement(Linkedin, { size: 20 }), "Connect on LinkedIn"),
+                                React.createElement('a', {
+                                    href: "https://github.com/GeorgiNaydenov",
+                                    target: "_blank",
+                                    rel: "noopener noreferrer",
+                                    className: "inline-flex items-center gap-2 text-slate-700 dark:text-slate-300 font-semibold hover:text-slate-900 dark:hover:text-white transition-colors link-underline"
+                                }, React.createElement(Github, { size: 20 }), "GitHub")
                             )
                         ),
 
