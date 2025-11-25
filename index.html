@@ -989,7 +989,14 @@
             setActiveTopic('all');
             setIsMobileMenuOpen(false);
             
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Fix: Ensure Stats & Bio expands when navigating to non-Artifacts pages
+            if (catId !== 'artifacts') {
+                setIsHeroVisible(true);
+            }
+            
+            // Use instant scroll (0, 0) instead of smooth behavior to prevent
+            // scroll listener race conditions on layout changes
+            window.scrollTo(0, 0);
             setSearchQuery('');
           };
 
