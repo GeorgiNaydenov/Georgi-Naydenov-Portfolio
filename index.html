@@ -154,7 +154,11 @@
           Layers,
           Book,
           Presentation,
-          FileType
+          FileType,
+          Eye,
+          Link,
+          Check,
+          Copy
         } from 'https://esm.sh/lucide-react@0.460.0?deps=react@18.2.0';
 
         // --- Data Configuration ---
@@ -535,7 +539,7 @@
             url: 'https://docs.google.com/presentation/d/1Mv5GfRjsNncoNbmplBX0ora1eaG-7hQb/edit?usp=sharing&ouid=117157081318605815108&rtpof=true&sd=true',
             category: 'artifacts',
             section: 'proof-of-concepts',
-            subCategory: 'research',
+            subCategory: 'ai-architecture',
             description: 'Presentation showcasing high-level architectures and deep research methodologies.'
           },
           {
@@ -546,6 +550,15 @@
             section: 'proof-of-concepts',
             subCategory: 'ai-architecture',
             description: 'Based on CrewAI, AWS, and other parts for the MAS Architecture.'
+          },
+          {
+            id: 'mas-recruit-poc',
+            title: 'Multi Agent System AI Recruitment Suite',
+            url: 'https://georginaydenov.github.io/MAS-Recruit-EU-AI-Act-Compliant-Platform/',
+            category: 'artifacts',
+            section: 'proof-of-concepts',
+            subCategory: 'ai-architecture',
+            description: 'EU AI Act Compliant Platform leveraging Multi-Agent System architecture.'
           },
 
           // --- Articles ---
@@ -805,6 +818,7 @@
           let Icon = ExternalLink;
           let iconBgClass = 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400';
           let secondaryTag = null;
+          const [copied, setCopied] = useState(false);
 
           // Determine Icon and Style based on Type
           if (item.category === 'appearances') Icon = item.type === 'video' ? Video : FileText;
@@ -844,7 +858,41 @@
             }
           }
 
+          const copyLink = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Build Deep Link URL
+            const params = new URLSearchParams();
+            params.set('category', item.category);
+            if (item.section) params.set('section', item.section);
+            if (item.platform) params.set('platform', item.platform);
+            if (item.subCategory) params.set('topic', item.subCategory);
+            
+            // Safe URL construction for sandboxed environments
+            const origin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : '';
+            const link = `${origin}${window.location.pathname}?${params.toString()}#${item.id}`;
+            
+            // Fallback for sandboxed iframes where navigator.clipboard might fail
+            const textArea = document.createElement("textarea");
+            textArea.value = link;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                setCopied(true);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            
+            document.body.removeChild(textArea);
+            setTimeout(() => setCopied(false), 2000);
+          };
+
           return React.createElement('a', {
+            id: item.id,
             href: item.url,
             target: "_blank",
             rel: "noopener noreferrer",
@@ -874,20 +922,43 @@
                         : item.category === 'articles' ? 'Article' 
                         : item.category === 'posts' ? 'LinkedIn Post' 
                         : 'Media'
-                )
+                ),
+                React.createElement('button', {
+                    onClick: copyLink,
+                    className: "p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all",
+                    title: "Copy link to this item"
+                }, copied ? React.createElement(Check, { size: 14, className: "text-green-500" }) : React.createElement(Link, { size: 14 }))
             )
           );
         };
 
         function App() {
-          const [activeCategory, setActiveCategory] = useState('artifacts');
+          const [activeCategory, setActiveCategory] = useState(() => {
+              const params = new URLSearchParams(window.location.search);
+              return params.get('category') || 'artifacts';
+          });
           
           // Artifacts-specific filters
-          const [activeSection, setActiveSection] = useState('all'); // 'all' | 'ai-prototypes' | 'study-guides' | 'proof-of-concepts'
-          const [activePlatform, setActivePlatform] = useState('all'); // 'all' | 'claude' | 'notebooklm'
-          const [activeTopic, setActiveTopic] = useState('all'); // 'all' | subCategoryId
+          const [activeSection, setActiveSection] = useState(() => {
+              const params = new URLSearchParams(window.location.search);
+              return params.get('section') || 'all';
+          });
+          
+          const [activePlatform, setActivePlatform] = useState(() => {
+              const params = new URLSearchParams(window.location.search);
+              return params.get('platform') || 'all';
+          });
 
-          const [searchQuery, setSearchQuery] = useState('');
+          const [activeTopic, setActiveTopic] = useState(() => {
+              const params = new URLSearchParams(window.location.search);
+              return params.get('topic') || 'all';
+          });
+
+          const [searchQuery, setSearchQuery] = useState(() => {
+              const params = new URLSearchParams(window.location.search);
+              return params.get('q') || '';
+          });
+
           const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
           const [isHeroVisible, setIsHeroVisible] = useState(true);
           const [showScrollTop, setShowScrollTop] = useState(false);
@@ -916,6 +987,45 @@
                   setIsHeroVisible(true);
               }
           }, [activeCategory]);
+          
+          // --- Deep Linking Effects ---
+          
+          // 1. Sync State to URL
+          useEffect(() => {
+            const params = new URLSearchParams();
+            if (activeCategory !== 'artifacts') params.set('category', activeCategory);
+            if (activeSection !== 'all') params.set('section', activeSection);
+            if (activePlatform !== 'all') params.set('platform', activePlatform);
+            if (activeTopic !== 'all') params.set('topic', activeTopic);
+            if (searchQuery) params.set('q', searchQuery);
+            
+            const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}${window.location.hash}`;
+            
+            // Only update history if URL actually changed to avoid redundant entries/flicker
+            if (window.location.search !== `?${params.toString()}`) {
+                try {
+                  window.history.replaceState(null, '', newUrl);
+                } catch (e) {
+                  // Silently fail in sandboxed environments where history API is restricted
+                  console.debug('History update skipped due to sandbox restrictions');
+                }
+            }
+          }, [activeCategory, activeSection, activePlatform, activeTopic, searchQuery]);
+
+          // 2. Handle Hash Scroll on Mount
+          useEffect(() => {
+            if (window.location.hash) {
+                const id = window.location.hash.substring(1);
+                // Wait slightly for DOM render
+                setTimeout(() => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Flash effect or highlight can be added here
+                    }
+                }, 800);
+            }
+          }, []);
 
           useEffect(() => {
             const handleScroll = () => {
@@ -1074,7 +1184,7 @@
                                 }, cat.icon, cat.label))
                             ),
                             
-                            /* Download CV Button */
+                            /* View CV Button */
                             React.createElement('a', {
                                 href: "https://app.enhancv.com/share/9cce06db",
                                 target: "_blank",
@@ -1082,7 +1192,7 @@
                                 className: "relative overflow-hidden flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md group"
                             }, 
                                 React.createElement('div', { className: "absolute inset-0 w-full h-full animate-shimmer opacity-0 group-hover:opacity-20 pointer-events-none" }),
-                                React.createElement(Download, { size: 16 }), "Download CV"
+                                React.createElement(Eye, { size: 16 }), "View CV"
                             ),
 
                             /* Dark Mode Toggle */
@@ -1131,7 +1241,7 @@
                             target: "_blank",
                             rel: "noopener noreferrer",
                             className: "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                        }, React.createElement(Download, { size: 18 }), "Download CV")
+                        }, React.createElement(Eye, { size: 18 }), "View CV")
                     )
                 )
             ),
