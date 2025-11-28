@@ -47,7 +47,6 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* Shimmer Effect for CTA */
         @keyframes shimmer {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
@@ -112,7 +111,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+<body class="bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans text-slate-900 dark:text-slate-100">
     <div id="root"></div>
 
     <script type="module">
@@ -154,7 +153,9 @@
           Layers,
           Book,
           Presentation,
-          FileType
+          FileType,
+          Share2,
+          Check
         } from 'https://esm.sh/lucide-react@0.460.0?deps=react@18.2.0';
 
         // --- Data Configuration ---
@@ -507,7 +508,7 @@
             category: 'artifacts',
             section: 'study-guides',
             subCategory: 'cbap',
-            description: 'Comprehensive PDF guide for CBAP exam preparation.'
+            description: 'A PDF guide I created while I was preparing for the CBAP.'
           },
           {
             id: 'psm-pspo-ii',
@@ -535,17 +536,26 @@
             url: 'https://docs.google.com/presentation/d/1Mv5GfRjsNncoNbmplBX0ora1eaG-7hQb/edit?usp=sharing&ouid=117157081318605815108&rtpof=true&sd=true',
             category: 'artifacts',
             section: 'proof-of-concepts',
-            subCategory: 'research',
+            subCategory: 'ai-architecture',
             description: 'Presentation showcasing high-level architectures and deep research methodologies.'
           },
           {
             id: 'ai-seller-poc',
-            title: 'AI Seller – MA AI Seller Architecture',
+            title: 'MAS Architecture AI Sales Agent Suite',
             url: 'https://georginaydenov.github.io/MAS-Architecture-AI-Seller-Suite/',
             category: 'artifacts',
             section: 'proof-of-concepts',
             subCategory: 'ai-architecture',
             description: 'Based on CrewAI, AWS, and other parts for the MAS Architecture.'
+          },
+          {
+            id: 'mas-recruit-poc',
+            title: 'Multi Agent System AI Recruitment Suite Architecture',
+            url: 'https://georginaydenov.github.io/MAS-Recruit-EU-AI-Act-Compliant-Platform/',
+            category: 'artifacts',
+            section: 'proof-of-concepts',
+            subCategory: 'ai-architecture',
+            description: 'EU AI Act Compliant Platform leveraging Multi-Agent System architecture.'
           },
 
           // --- Articles ---
@@ -572,7 +582,7 @@
           },
           {
             id: 'article-dysfunctions',
-            title: 'Mapping Organizational Dysfunctions',
+            title: 'Mapping Organizational Dysfunctions to Foster Outcome-Oriented Results',
             url: 'https://mentormate.com/blog/mapping-organizational-dysfunctions-to-foster-outcome-oriented-results/',
             category: 'articles',
             description: 'Strategies to identify and correct dysfunction to drive results.'
@@ -729,11 +739,6 @@
             'proof-of-concepts': 'All POCs'
         };
 
-        const PLATFORM_LABELS = {
-            'claude': { label: 'Claude', icon: Layout },
-            'notebooklm': { label: 'NotebookLM', icon: NotebookPen }
-        };
-
         // --- Components ---
 
         const CountUp = ({ end, duration = 2000 }) => {
@@ -801,10 +806,69 @@
             );
         };
 
+        const Toast = ({ message, isVisible }) => {
+            if (!isVisible) return null;
+            return React.createElement('div', {
+                className: "fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-slate-800/90 dark:bg-white/90 text-white dark:text-slate-900 px-4 py-2 rounded-full shadow-lg text-sm font-medium animate-fade-in-up flex items-center gap-2 backdrop-blur-sm"
+            }, 
+            React.createElement(Check, { size: 14 }),
+            message);
+        }
+
         const Card = ({ item, animationDelay }) => {
           let Icon = ExternalLink;
           let iconBgClass = 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400';
           let secondaryTag = null;
+          const [isHighlighted, setIsHighlighted] = useState(false);
+
+          // Highlight effect if deep linked
+          useEffect(() => {
+              const params = new URLSearchParams(window.location.search);
+              if (params.get('item') === item.id) {
+                  setIsHighlighted(true);
+                  // Remove highlight after animation
+                  const timer = setTimeout(() => setIsHighlighted(false), 2000);
+                  return () => clearTimeout(timer);
+              }
+          }, [item.id]);
+
+          // Share function
+          const handleShare = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const url = new URL(window.location.href);
+              url.searchParams.set('item', item.id);
+              
+              // Fallback copy mechanism
+              const copyText = url.toString();
+              
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(copyText).then(() => {
+                      const event = new CustomEvent('show-toast', { detail: 'Link copied to clipboard' });
+                      window.dispatchEvent(event);
+                  }).catch(() => {
+                      // Fallback if writeText fails
+                      fallbackCopy(copyText);
+                  });
+              } else {
+                  fallbackCopy(copyText);
+              }
+
+              function fallbackCopy(text) {
+                  try {
+                      const textArea = document.createElement("textarea");
+                      textArea.value = text;
+                      document.body.appendChild(textArea);
+                      textArea.select();
+                      document.execCommand('copy');
+                      document.body.removeChild(textArea);
+                      const event = new CustomEvent('show-toast', { detail: 'Link copied to clipboard' });
+                      window.dispatchEvent(event);
+                  } catch (err) {
+                      console.warn('Copy failed', err);
+                  }
+              }
+          };
 
           // Determine Icon and Style based on Type
           if (item.category === 'appearances') Icon = item.type === 'video' ? Video : FileText;
@@ -845,10 +909,13 @@
           }
 
           return React.createElement('a', {
+            id: item.id,
             href: item.url,
             target: "_blank",
             rel: "noopener noreferrer",
-            className: "group flex flex-col h-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-400 transition-all duration-300 overflow-hidden relative transform hover:-translate-y-1 stagger-item animate-fade-in-up",
+            className: `group flex flex-col h-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-400 transition-all duration-300 overflow-hidden relative transform hover:-translate-y-1 stagger-item animate-fade-in-up ${
+                isHighlighted ? 'ring-2 ring-blue-500' : ''
+            }`,
             style: { animationDelay: animationDelay }
           }, 
             /* Main Clickable Area */
@@ -857,8 +924,18 @@
             },
                 React.createElement('div', { className: "flex items-start justify-between mb-4" },
                     React.createElement('div', { className: `p-2.5 rounded-lg shrink-0 ${iconBgClass} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}, React.createElement(Icon, { size: 20 })),
-                    secondaryTag,
-                    React.createElement(ExternalLink, { size: 16, className: "text-slate-300 dark:text-slate-600 group-hover:text-blue-500 transition-colors shrink-0 mt-1" })
+                    
+                    React.createElement('div', { className: "flex items-center gap-2" },
+                        secondaryTag,
+                         /* Share Button */
+                        React.createElement('button', {
+                            onClick: handleShare,
+                            className: "p-1.5 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors z-10",
+                            title: "Copy link to this item"
+                        }, React.createElement(Share2, { size: 16 })),
+
+                        React.createElement(ExternalLink, { size: 16, className: "text-slate-300 dark:text-slate-600 group-hover:text-blue-500 transition-colors shrink-0 mt-1" })
+                    )
                 ),
                 
                 React.createElement('h3', { className: "text-lg font-bold text-slate-900 dark:text-slate-100 mb-2 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" }, item.title),
@@ -880,17 +957,25 @@
         };
 
         function App() {
-          const [activeCategory, setActiveCategory] = useState('artifacts');
-          
-          // Artifacts-specific filters
-          const [activeSection, setActiveSection] = useState('all'); // 'all' | 'ai-prototypes' | 'study-guides' | 'proof-of-concepts'
-          const [activePlatform, setActivePlatform] = useState('all'); // 'all' | 'claude' | 'notebooklm'
-          const [activeTopic, setActiveTopic] = useState('all'); // 'all' | subCategoryId
+          const getInitialState = (key, defaultVal) => {
+              try {
+                  const params = new URLSearchParams(window.location.search);
+                  return params.get(key) || defaultVal;
+              } catch (e) {
+                  return defaultVal;
+              }
+          };
 
-          const [searchQuery, setSearchQuery] = useState('');
+          const [activeCategory, setActiveCategory] = useState(() => getInitialState('category', 'artifacts'));
+          const [activeSection, setActiveSection] = useState(() => getInitialState('section', 'all'));
+          const [activePlatform, setActivePlatform] = useState(() => getInitialState('platform', 'all'));
+          const [activeTopic, setActiveTopic] = useState(() => getInitialState('topic', 'all'));
+          const [searchQuery, setSearchQuery] = useState(() => getInitialState('q', ''));
+          
           const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
           const [isHeroVisible, setIsHeroVisible] = useState(true);
           const [showScrollTop, setShowScrollTop] = useState(false);
+          const [toast, setToast] = useState({ visible: false, message: '' });
           
           const lastScrollY = useRef(0);
           
@@ -908,14 +993,53 @@
               document.documentElement.classList.remove('dark');
             }
           }, [isDarkMode]);
-           // Explicitly force hero expansion when navigating between top-level categories
-           // This ensures it doesn't stay stuck in collapsed mode when moving from "Artifacts" (potentially scrolled)
-          // to "Articles" or other pages.
+           
           useEffect(() => {
               if (activeCategory !== 'artifacts') {
                   setIsHeroVisible(true);
               }
           }, [activeCategory]);
+
+          // URL Sync
+          useEffect(() => {
+              try {
+                  const params = new URLSearchParams();
+                  if (activeCategory !== 'artifacts') params.set('category', activeCategory);
+                  if (activeSection !== 'all') params.set('section', activeSection);
+                  if (activePlatform !== 'all') params.set('platform', activePlatform);
+                  if (activeTopic !== 'all') params.set('topic', activeTopic);
+                  if (searchQuery) params.set('q', searchQuery);
+
+                  const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
+                  window.history.replaceState({}, '', newUrl);
+              } catch (e) {
+                  console.warn('URL sync disabled in sandbox environment');
+              }
+          }, [activeCategory, activeSection, activePlatform, activeTopic, searchQuery]);
+
+          // Deep Link Scrolling
+          useEffect(() => {
+              const params = new URLSearchParams(window.location.search);
+              const itemId = params.get('item');
+              if (itemId) {
+                  setTimeout(() => {
+                      const element = document.getElementById(itemId);
+                      if (element) {
+                          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                  }, 500);
+              }
+          }, []);
+
+          // Toast Listener
+          useEffect(() => {
+              const handleShowToast = (e) => {
+                  setToast({ visible: true, message: e.detail });
+                  setTimeout(() => setToast({ visible: false, message: '' }), 3000);
+              };
+              window.addEventListener('show-toast', handleShowToast);
+              return () => window.removeEventListener('show-toast', handleShowToast);
+          }, []);
 
           useEffect(() => {
             const handleScroll = () => {
@@ -928,19 +1052,16 @@
               
               setShowScrollTop(currentScrollY > 300);
               
-              // Expand logic: Always allow expanding if near top, regardless of doc height
                if (currentScrollY < 50 && !isHeroVisible) {
                 setIsHeroVisible(true);
                }
-              // Collapse logic: Only collapse if scrolled down AND page is tall enough
-              // This prevents the "spazzing" loop on short pages
               if (currentScrollY > 100 && isHeroVisible && documentHeight > windowHeight * 1.5) {
                 setIsHeroVisible(false);
               }
             };
             window.addEventListener('scroll', handleScroll);
             return () => window.removeEventListener('scroll', handleScroll);
-          }, [isHeroVisible]); // Depend on isHeroVisible to properly update closure state
+          }, [isHeroVisible]); 
 
           const scrollToTop = () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -949,26 +1070,21 @@
           // Filtering Logic
           const filteredData = useMemo(() => {
             return DATA.filter(item => {
-                // 1. Primary Category Filter (Tabs)
+                // 1. Primary Category Filter
                 if (item.category !== activeCategory) return false;
 
                 // 2. Artifact Specific Filters
                 if (activeCategory === 'artifacts') {
-                    // Level 1: Section (The User's "All" request logic)
                     if (activeSection !== 'all') {
                         if (item.section !== activeSection) return false;
                     }
-
-                    // Level 2: Platform (Only if looking at All or AI Prototypes)
                     if (activeSection === 'ai-prototypes' || activeSection === 'all') {
                          if (activePlatform !== 'all' && item.platform !== activePlatform) return false;
                     }
-
-                    // Level 3: Topic
                     if (activeTopic !== 'all' && item.subCategory !== activeTopic) return false;
                 }
 
-                // 3. Search Query (Applied LAST to ensure it searches within the filtered set)
+                // 3. Search Query
                 if (searchQuery) {
                     const q = searchQuery.toLowerCase();
                     const titleMatch = item.title.toLowerCase().includes(q);
@@ -982,18 +1098,13 @@
             });
           }, [activeCategory, activeSection, activePlatform, activeTopic, searchQuery]);
 
-          // Dynamic Topic List Calculation based on current Section/Category view
           const availableTopics = useMemo(() => {
-            // We want topics relevant to the CURRENT section view, so we filter DATA by category + section first
             const sectionItems = DATA.filter(d => {
                 if (d.category !== activeCategory) return false;
                 if (activeSection !== 'all' && d.section !== activeSection) return false;
-                
-                // Filter by platform to ensure topics update based on platform selection
                 if ((activeSection === 'all' || activeSection === 'ai-prototypes') && activePlatform !== 'all') {
                      if (d.platform !== activePlatform) return false;
                 }
-
                 return true;
             });
             const topics = [...new Set(sectionItems.map(d => d.subCategory).filter(Boolean))];
@@ -1004,16 +1115,12 @@
           }, [activeCategory, activeSection, activePlatform]);
 
          const handleCategoryChange = (catId) => {
-          // 1. Force instant scroll immediately to bypass CSS smooth-scroll
-          // This prevents the scroll listener from firing on intermediate coordinates
-          window.scrollTo({ top: 0, behavior: 'instant' });
-
+            window.scrollTo({ top: 0, behavior: 'instant' });
             setActiveCategory(catId);
             setActiveSection('all');
             setActivePlatform('all');
             setActiveTopic('all');
             setIsMobileMenuOpen(false);
-            
             setIsHeroVisible(true);
             setSearchQuery('');
           };
@@ -1021,11 +1128,10 @@
           const handleSectionChange = (secId) => {
             setActiveSection(secId);
             setActivePlatform('all');
-            setActiveTopic('all'); // FIX: Reset topic when switching sections
+            setActiveTopic('all'); 
             setSearchQuery('');
           };
 
-          // FIX: Also reset topic when platform changes to prevent "No resources found" on platform switch
           const handlePlatformChange = (platId) => {
             setActivePlatform(platId);
             setActiveTopic('all'); 
@@ -1033,7 +1139,7 @@
 
           const handleStatClick = (catId) => {
             handleCategoryChange(catId);
-            setIsHeroVisible(false); // Collapse bio on stat click for focus
+            setIsHeroVisible(false);
           };
 
           const counts = {
@@ -1045,13 +1151,15 @@
 
           return React.createElement('div', { className: "min-h-screen flex flex-col font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-100 dark:selection:bg-blue-900 supports-[min-height:100dvh]:min-h-[100dvh]" },
             
+            React.createElement(Toast, { message: toast.message, isVisible: toast.visible }),
+
             /* Header */
             React.createElement('header', { className: "bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 transition-colors" },
                 React.createElement('div', { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" },
                     React.createElement('div', { className: "flex items-center justify-between h-20" },
                         
                         /* Logo */
-                        React.createElement('div', { className: "flex items-center gap-3 animate-fade-in-right" },
+                        React.createElement('div', { className: "flex items-center gap-3 animate-fade-in-right cursor-pointer", onClick: () => { window.location.href = window.location.pathname; } },
                             React.createElement('div', { className: "bg-blue-600 text-white p-2 rounded-lg shadow-sm shadow-blue-500/30" }, React.createElement(Library, { size: 24 })),
                             React.createElement('div', null,
                                 React.createElement('h1', { className: "text-xl font-bold text-slate-900 dark:text-white leading-none" }, "Georgi Naydenov"),
@@ -1074,7 +1182,7 @@
                                 }, cat.icon, cat.label))
                             ),
                             
-                            /* Download CV Button */
+                            /* View CV Button */
                             React.createElement('a', {
                                 href: "https://app.enhancv.com/share/9cce06db",
                                 target: "_blank",
@@ -1082,7 +1190,7 @@
                                 className: "relative overflow-hidden flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md group"
                             }, 
                                 React.createElement('div', { className: "absolute inset-0 w-full h-full animate-shimmer opacity-0 group-hover:opacity-20 pointer-events-none" }),
-                                React.createElement(Download, { size: 16 }), "Download CV"
+                                React.createElement(FileText, { size: 16 }), "View CV"
                             ),
 
                             /* Dark Mode Toggle */
@@ -1131,7 +1239,7 @@
                             target: "_blank",
                             rel: "noopener noreferrer",
                             className: "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                        }, React.createElement(Download, { size: 18 }), "Download CV")
+                        }, React.createElement(FileText, { size: 18 }), "View CV")
                     )
                 )
             ),
